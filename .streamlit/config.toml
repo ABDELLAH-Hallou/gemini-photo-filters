@@ -8,7 +8,7 @@ enableCORS = true
 enableXsrfProtection = true
 maxUploadSize = 2000
 enableWebsocketCompression = false
-
+fileWatcherType = "none"
 [browser]
 gatherUsageStats = false
 serverAddress = "localhost"
