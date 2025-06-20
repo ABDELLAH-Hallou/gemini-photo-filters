@@ -1,0 +1,71 @@
+app:
+  page_title: "PhotoPro - AI Photo Enhancement"
+  page_icon: "📸"
+  welcome_header: "📸 PhotoPro - AI Photo Enhancement"
+  welcome_subtitle: "Transform your photos with the power AI"
+
+tabs:
+  - "🎨 Enhance Your Photo"
+  - "📊 Enhance a Group of Photos"
+  - "📈 Monitoring"
+  - "ℹ️ About Us"
+
+sidebar:
+  settings: "## ⚙️ Settings"
+  image_settings: "### 🖼️ Image Settings"
+  image_settings_slider_title_size: "Max Image Size (px)"
+  image_settings_slider_min_size: 512
+  image_settings_slider_max_size: 2048
+  image_settings_slider_size: 1024
+  image_settings_slider_title_quality: "Output Quality"
+  image_settings_slider_min_quality: 50
+  image_settings_slider_max_quality: 100
+  image_settings_slider_quality: 95
+
+  processing_options: "### ⚡ Processing Options"
+  processing_options_slider_title_retry: "Max API Retries"
+  processing_options_slider_min_retry: 1
+  processing_options_slider_max_retry: 5
+  processing_options_slider_retry: 3
+
+prompts:
+  enhancement_category_header: "🎨 Choose Enhancement Style"
+  enhancement_category_label: "Enhancement Category:"
+  enhancement_category_help: "Choose the type of enhancement you want to apply"
+  random_button: "🎲 Random Prompt"
+  random_button_help: "Get a random prompt from selected category"
+  select_prompt_label: "Select specific prompt:"
+  custom_prompt_title: "### ✏️ Custom Prompt"
+  custom_prompt_input: "Or enter your own enhancement instructions:"
+  custom_prompt_placeholder: "e.g., Make this photo look like it was taken during golden hour with warm lighting..."
+
+images:
+  single_image_process: "🎨 Single Image Enhancement"
+  uplaod_image_label: "Choose an image file:"
+  uplaod_image_help: "Upload a single image for enhancement"
+  original_image_caption: "Original Image"
+  uplaod_images_header: "🔄 Batch Processing"
+  uplaod_images_title: "Upload multiple images for batch processing:"
+  uplaod_images_help: "You can upload up to 10 images at once"
+
+monitor:
+  monitoring_header: "📈 Analytics & Statistics"
+  total_images: "Total Images Processed"
+  successful_enhancements: "Successful Enhancements"
+  failed_enhancements: "Failed Enhancements"
+  history_header: "### 📋 Recent Enhancement History"
+  history_clear: "🗑️ Clear History"
+  history_clear_res: "History cleared!"
+
+about_us:
+  header: "ℹ️ About PhotoPro"
+
+main:
+  process_action: "🚀 Enhance Image"
+  process_action_batch: "🔄 Process All Images"
+
+warning:
+  upload: "Please upload at least one image."
+error:
+  prompt: "Please select or enter a prompt for enhancement."
+
