@@ -14,7 +14,7 @@ from engine import (
 )
 from utils.about import ABOUT
 from utils.helper import get_category_display_names
-from utils.filters import filters_prompts, format_filter_prompt
+from utils.filters import filters_prompts, format_filter_prompt, filter_categories
 from utils.params import filter_parameters
 from utils.image import (
     ImageConfig
@@ -368,29 +368,6 @@ def display_filter_controls():
     if 'active_filters' not in st.session_state:
         st.session_state.active_filters = {}
     
-    
-    available_filters = list(filters_prompts.keys())
-    filter_names_display = [name.replace('_', ' ').title() for name in available_filters]
-    
-    
-    basic_filters = ['brightness', 'contrast', 'saturation', 'exposure', 'sharpness']
-    color_filters = ['temperature_tint', 'hsl', 'split_toning', 'curves']
-    artistic_filters = ['vintage', 'cinematic', 'black_white', 'mood_based', 'instagram_presets']
-    effects_filters = ['vignette', 'grain_noise', 'blur', 'light_leaks_flares', 'glitch_pixelate_sketch']
-    ai_filters = ['auto_enhance', 'sky_replacement', 'background_removal_blur', 'face_retouch', 'object_removal', 'style_transfer']
-    editing_filters = ['crop_rotate', 'flip_mirror', 'perspective_skew', 'resize']
-    overlay_filters = ['add_text', 'stickers_emojis', 'brush_draw', 'frames_borders']
-    
-    filter_categories = {
-        "📊 Basic Adjustments": basic_filters,
-        "🎨 Color & Tone": color_filters,
-        "🎭 Artistic Styles": artistic_filters,
-        "✨ Visual Effects": effects_filters,
-        "🤖 AI-Powered": ai_filters,
-        "📐 Transform & Edit": editing_filters,
-        "📝 Overlays & Text": overlay_filters
-    }
-    
     selected_filters = []
     
     for category, filters in filter_categories.items():
@@ -419,7 +396,35 @@ def display_filter_controls():
                     
                     for param_name, options in filter_params.items():
                         with cols[col_idx % 2]:
-                            if isinstance(options, list):
+                            if isinstance(options, dict) and options.get("type") == "slider":
+                                # slider
+                                params[param_name] = st.slider(
+                                    f"{param_name.replace('_', ' ').title()} ({options['unit']})",
+                                    min_value=options["min"],
+                                    max_value=options["max"],
+                                    value=options["default"],
+                                    step=options["step"],
+                                    key=f"{filter_name}_{param_name}"
+                                )
+                            elif isinstance(options, dict) and options.get("type") == "number_input":
+                                # numbers
+                                params[param_name] = st.number_input(
+                                    f"{param_name.replace('_', ' ').title()} ({options['unit']})",
+                                    min_value=options["min"],
+                                    max_value=options["max"],
+                                    value=options["default"],
+                                    key=f"{filter_name}_{param_name}"
+                                )
+                            elif isinstance(options, dict) and options.get("type") == "text_input":
+                                # texts
+                                params[param_name] = st.text_input(
+                                    param_name.replace('_', ' ').title(),
+                                    value=options["default"],
+                                    placeholder=options.get("placeholder", ""),
+                                    key=f"{filter_name}_{param_name}"
+                                )
+                            elif isinstance(options, list):
+                                # selection
                                 params[param_name] = st.selectbox(
                                     param_name.replace('_', ' ').title(),
                                     options,
