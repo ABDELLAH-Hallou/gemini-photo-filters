@@ -14,6 +14,8 @@ from engine import (
 )
 from utils.about import ABOUT
 from utils.helper import get_category_display_names
+from utils.filters import filters_prompts, format_filter_prompt
+from utils.params import filter_parameters
 from utils.image import (
     ImageConfig
 )
@@ -361,6 +363,162 @@ def display_about_tab():
     
     st.markdown(ABOUT)
 
+def display_filter_controls():
+    st.markdown("### 🎨 Image Filters Configuration")
+    if 'active_filters' not in st.session_state:
+        st.session_state.active_filters = {}
+    
+    
+    available_filters = list(filters_prompts.keys())
+    filter_names_display = [name.replace('_', ' ').title() for name in available_filters]
+    
+    
+    basic_filters = ['brightness', 'contrast', 'saturation', 'exposure', 'sharpness']
+    color_filters = ['temperature_tint', 'hsl', 'split_toning', 'curves']
+    artistic_filters = ['vintage', 'cinematic', 'black_white', 'mood_based', 'instagram_presets']
+    effects_filters = ['vignette', 'grain_noise', 'blur', 'light_leaks_flares', 'glitch_pixelate_sketch']
+    ai_filters = ['auto_enhance', 'sky_replacement', 'background_removal_blur', 'face_retouch', 'object_removal', 'style_transfer']
+    editing_filters = ['crop_rotate', 'flip_mirror', 'perspective_skew', 'resize']
+    overlay_filters = ['add_text', 'stickers_emojis', 'brush_draw', 'frames_borders']
+    
+    filter_categories = {
+        "📊 Basic Adjustments": basic_filters,
+        "🎨 Color & Tone": color_filters,
+        "🎭 Artistic Styles": artistic_filters,
+        "✨ Visual Effects": effects_filters,
+        "🤖 AI-Powered": ai_filters,
+        "📐 Transform & Edit": editing_filters,
+        "📝 Overlays & Text": overlay_filters
+    }
+    
+    selected_filters = []
+    
+    for category, filters in filter_categories.items():
+        with st.expander(category, expanded=False):
+            cols = st.columns(2)
+            for i, filter_name in enumerate(filters):
+                with cols[i % 2]:
+                    if st.checkbox(filter_name.replace('_', ' ').title(), key=f"filter_{filter_name}"):
+                        selected_filters.append(filter_name)
+    
+    
+    configured_filters = {}
+    
+    if selected_filters:
+        st.markdown("### ⚙️ Filter Parameters")
+        
+        for filter_name in selected_filters:
+            with st.expander(f"Configure {filter_name.replace('_', ' ').title()}", expanded=True):
+                params = {}
+                
+                if filter_name in filter_parameters:
+                    filter_params = filter_parameters[filter_name]
+                    
+                    cols = st.columns(2)
+                    col_idx = 0
+                    
+                    for param_name, options in filter_params.items():
+                        with cols[col_idx % 2]:
+                            if isinstance(options, list):
+                                params[param_name] = st.selectbox(
+                                    param_name.replace('_', ' ').title(),
+                                    options,
+                                    key=f"{filter_name}_{param_name}"
+                                )
+                            else:
+                                params[param_name] = st.text_input(
+                                    param_name.replace('_', ' ').title(),
+                                    value=str(options),
+                                    key=f"{filter_name}_{param_name}"
+                                )
+                        col_idx += 1
+                
+                if not filter_parameters.get(filter_name):
+                    params = {}
+                
+                configured_filters[filter_name] = params
+    
+    return configured_filters
+
+def combine_filter_prompts(configured_filters):
+    if not configured_filters:
+        return ""
+    
+    combined_prompts = []
+    
+    for filter_name, params in configured_filters.items():
+        try:
+            if params:  
+                formatted_prompt = format_filter_prompt(filter_name, **params)
+            else:  
+                formatted_prompt = filters_prompts[filter_name]
+            
+            combined_prompts.append(f"**{filter_name.replace('_', ' ').title()}:** {formatted_prompt}")
+        except KeyError as e:
+            st.warning(f"Missing parameter for {filter_name}: {e}")
+            continue
+    
+    if combined_prompts:
+        final_prompt = "Apply the following image processing filters and adjustments:\n\n" + "\n\n".join(combined_prompts)
+        final_prompt += "\n\nEnsure all adjustments work harmoniously together to create a cohesive and visually appealing result. Maintain the natural look of the image while applying the specified enhancements."
+        return final_prompt
+    
+    return ""
+def display_prompt_selector_with_filters(key_suffix=""):
+    
+    prompt_option = st.radio(
+        "Choose prompt type:",
+        ["Custom Prompt", "Filter-Based Prompt", "Combined Prompt"],
+        key=f"prompt_type_{key_suffix}"
+    )
+    
+    final_prompt = ""
+    
+    if prompt_option == "Custom Prompt":
+        final_prompt = st.text_area(
+            "Enter your custom prompt:",
+            height=100,
+            placeholder="Describe what you want to do with the image...",
+            key=f"custom_prompt_{key_suffix}"
+        )
+    
+    elif prompt_option == "Filter-Based Prompt":
+        configured_filters = display_filter_controls()
+        
+        if configured_filters:
+            final_prompt = combine_filter_prompts(configured_filters)
+            
+            if final_prompt:
+                with st.expander("Preview Combined Prompt", expanded=False):
+                    st.text_area("Combined Filter Prompt:", value=final_prompt, height=200, disabled=True)
+        else:
+            st.info("Select and configure filters above to generate the prompt.")
+    
+    elif prompt_option == "Combined Prompt":
+        custom_prompt = st.text_area(
+            "Enter your custom prompt:",
+            height=100,
+            placeholder="Describe additional modifications...",
+            key=f"combined_custom_prompt_{key_suffix}"
+        )
+        
+        configured_filters = display_filter_controls()
+        filter_prompt = combine_filter_prompts(configured_filters) if configured_filters else ""
+        
+        
+        if custom_prompt and filter_prompt:
+            final_prompt = f"{custom_prompt}\n\nAdditionally, apply these filters:\n{filter_prompt}"
+        elif custom_prompt:
+            final_prompt = custom_prompt
+        elif filter_prompt:
+            final_prompt = filter_prompt
+        
+        
+        if final_prompt:
+            with st.expander("Preview Combined Prompt", expanded=False):
+                st.text_area("Final Combined Prompt:", value=final_prompt, height=200, disabled=True)
+    
+    return final_prompt
 def main():
     initialize_session_state()
     api_key = get_api_key()
@@ -389,7 +547,7 @@ def main():
                 st.image(uploaded_file, caption=CONFIG["images"]["original_image_caption"], use_container_width =True)
         
         # Prompt
-        prompt = display_prompt_selector("prompt")
+        prompt = display_prompt_selector_with_filters("prompt")
         
         # Main Process
         if st.button(CONFIG["main"]["process_action"], type="primary"):
@@ -401,7 +559,7 @@ def main():
         uploaded_files = display_batch_processing_tab()
         
         # Prompt
-        prompt = display_prompt_selector("batch_prompt")
+        prompt = display_prompt_selector_with_filters("batch_prompt")
         
         # main process
         if st.button(CONFIG["main"]["process_action_batch"], type="primary"):
