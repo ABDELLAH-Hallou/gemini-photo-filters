@@ -24,7 +24,7 @@ logger = logs()
 @dataclass
 class GeminiConfig:
     """Gemini API."""
-    model_name: str = "gemini-2.0-flash-preview-image-generation"
+    model_name: str = "gemini-2.5-flash-image-preview"
     response_modalities: List[str] = None
     timeout_seconds: int = 60
     max_retries: int = 3
